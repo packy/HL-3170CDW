@@ -9,26 +9,91 @@ use HTTP::Client;
 use List::Util qw{ sum };
 use Storable;
 
-my $data_file    = shift @ARGV;
-my $data_max_age = shift @ARGV;
-my $host         = shift @ARGV;
-my $command      = shift @ARGV;
+my $data_file = shift @ARGV;
+my $command   = shift @ARGV;
 
-# if there's non-numeric data in $data_max_age
-if ($data_max_age =~ /\D/) {
-  my $sec = 0;
-  if ($data_max_age =~ /(\d+)\s*s/) { $sec += $1; }
-  if ($data_max_age =~ /(\d+)\s*m/) { $sec += $1 * 60; }
-  if ($data_max_age =~ /(\d+)\s*h/) { $sec += $1 * 3600; }
-  if ($data_max_age =~ /(\d+)\s*d/) { $sec += $1 * 86400; }
-  if ($data_max_age =~ /(\d+)\s*w/) { $sec += $1 * 604800; }
-  $data_max_age = $sec
+if (my($host, $max_age) = $command =~ m{refresh\[([^\]]+)\]\[([^\]]+)\]}) {
+  # if there's non-numeric data in $data_max_age
+  if ($max_age =~ /\D/) {
+    $max_age = dhms2sec($max_age);
+  }
+
+  exit if -f $data_file && (time - stat($data_file)->mtime < $max_age);
+
+  refresh_data($host);
+  exit;
 }
 
-my $data;
-my $fetch_data = ! -f $data_file
-              || (time - stat($data_file)->mtime > $data_max_age);
-if ($fetch_data) {
+die "$data_file not found!\n"
+  unless -f $data_file;
+
+my $data = retrieve($data_file);
+
+if ($command eq 'dump') {
+  print Dumper($data);
+}
+elsif (my($get) = $command =~ m{get\[(.+)\]}) {
+  my @keys = split /\]\[/, $get;
+  my $ptr = $data;
+  my @breadcrumbs;
+  foreach my $key ( @keys ) {
+    if ( ref($ptr) eq 'HASH' ) {
+      if (exists $ptr->{$key}) {
+        if (ref($ptr->{$key}) eq 'HASH' ||
+            ref($ptr->{$key}) eq 'ARRAY') {
+          $ptr = $ptr->{$key};
+          push @breadcrumbs, $key;
+          next;
+        }
+        print $ptr->{$key};
+        last;
+      }
+    }
+    elsif ( ref($ptr) eq 'ARRAY' && $key =~ /^\d+$/ ) {
+      if (ref($ptr->[$key]) eq 'HASH' ||
+          ref($ptr->[$key]) eq 'ARRAY') {
+        $ptr = $ptr->[$key];
+        push @breadcrumbs, $key;
+        next;
+      }
+      print $ptr->[$key];
+      last;
+    }
+    my $crumbs = join '][', @breadcrumbs, $key;
+    die "ERROR: no key [$crumbs]\n"
+  }
+}
+else {
+  say "UNKNOWN COMMAND: $command";
+}
+
+#
+# functions
+#
+
+sub key_sub {
+  my $key = shift;
+  return 'total' if ($key eq 'Total Paper Jams' || $key eq 'Total');
+  return 'Hagaki/Japanese Postcard/4R' if ($key eq 'Hagaki');
+  return 'Paper Feeding Kit 1' if ($key eq 'PF Kit 1');
+  $key =~ s/Drum\s*//;
+  $key =~ s/\s*Unit\s*//;
+  return $key;
+}
+
+sub dhms2sec {
+  my $sec = 0;
+  my $string = shift;
+  if ($string =~ /(\d+)\s*s/) { $sec += $1; }
+  if ($string =~ /(\d+)\s*m/) { $sec += $1 * 60; }
+  if ($string =~ /(\d+)\s*h/) { $sec += $1 * 3600; }
+  if ($string =~ /(\d+)\s*d/) { $sec += $1 * 86400; }
+  if ($string =~ /(\d+)\s*w/) { $sec += $1 * 604800; }
+  return $sec;
+}
+
+sub refresh_data {
+  my $host     = shift;
   my $url      = "http://$host/etc/mnt_info.csv";
   my $client   = HTTP::Client->new();
   my $response = $client->get($url);
@@ -36,7 +101,7 @@ if ($fetch_data) {
   my($header_line, $value_line) = split /\n/, $response;
   my @headers = map { substr($_, 0, 1, ''); substr($_, -1, 1, ''); $_} split /,/, $header_line;
   my @values  = map { substr($_, 0, 1, ''); substr($_, -1, 1, ''); $_} split /,/, $value_line;
-  $data = {};
+  my $data = {};
 
   foreach my $i (0 .. $#values) {
     my $header = $headers[$i];
@@ -100,59 +165,4 @@ if ($fetch_data) {
   }
 
   store $data, $data_file;
-}
-else {
-  $data = retrieve($data_file);
-}
-
-if ($command eq 'dump') {
-  print Dumper($data);
-}
-elsif (my($get) = $command =~ m{get\[(.+)\]}) {
-  my @keys = split /\]\[/, $get;
-  my $ptr = $data;
-  my @breadcrumbs;
-  foreach my $key ( @keys ) {
-    if ( ref($ptr) eq 'HASH' ) {
-      if (exists $ptr->{$key}) {
-        if (ref($ptr->{$key}) eq 'HASH' ||
-            ref($ptr->{$key}) eq 'ARRAY') {
-          $ptr = $ptr->{$key};
-          push @breadcrumbs, $key;
-          next;
-        }
-        print $ptr->{$key};
-        last;
-      }
-    }
-    elsif ( ref($ptr) eq 'ARRAY' && $key =~ /^\d+$/ ) {
-      if (ref($ptr->[$key]) eq 'HASH' ||
-          ref($ptr->[$key]) eq 'ARRAY') {
-        $ptr = $ptr->[$key];
-        push @breadcrumbs, $key;
-        next;
-      }
-      print $ptr->[$key];
-      last;
-    }
-    my $crumbs = join '][', @breadcrumbs, $key;
-    die "ERROR: no key [$crumbs]\n"
-  }
-}
-else {
-  say "UNKNOWN COMMAND: $command";
-}
-
-#
-# functions
-#
-
-sub key_sub {
-  my $key = shift;
-  return 'total' if ($key eq 'Total Paper Jams' || $key eq 'Total');
-  return 'Hagaki/Japanese Postcard/4R' if ($key eq 'Hagaki');
-  return 'Paper Feeding Kit 1' if ($key eq 'PF Kit 1');
-  $key =~ s/Drum\s*//;
-  $key =~ s/\s*Unit\s*//;
-  return $key;
 }
