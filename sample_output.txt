@@ -1,0 +1,169 @@
+# /usr/local/etc/zabbix/scripts/HL-3170CDW.pl /var/db/zabbix/printers/HL-3170CDW.dat dump
+{
+  counts => {
+    drum => {
+      Black => 1314,
+      Cyan => 1314,
+      Magenta => 1314,
+      Yellow => 1314,
+      total => 5256,
+    },
+    image => {
+      Black => 1216,
+      Cyan => 791,
+      Magenta => 792,
+      Yellow => 796,
+      total => 3595,
+    },
+    jams => {
+      "2-sided" => 0,
+      Inside => 0,
+      "Manual Feed" => 0,
+      Rear => 0,
+      "Tray 1" => 1,
+      total => 1,
+    },
+    page => {
+      "B&W" => 141,
+      Color => 1173,
+      total => 1314,
+    },
+    printed => {
+      size => {
+        "A4/Letter" => 1304,
+        A5 => 0,
+        "B5/Executive" => 0,
+        Envelopes => 0,
+        "Legal/Folio" => 10,
+        Others => 0,
+      },
+      type => {
+        "Envelopes/Env. Thick/Env. Thin" => 0,
+        Glossy => 0,
+        Hagaki => 0,
+        Label => 0,
+        "Plain/Thin/Recycled" => 1314,
+        "Thick/Thicker/Bond" => 0,
+      },
+    },
+  },
+  errors => [
+    {
+      count => 1003,
+      err => "Replace Toner (C)",
+    },
+    {
+      count => 987,
+      err => "Replace Toner (M)",
+    },
+    {
+      count => 952,
+      err => "Jam Rear",
+    },
+    {
+      count => 952,
+      err => "Jam Inside",
+    },
+    {
+      count => 952,
+      err => "Jam Tray 1",
+    },
+    {
+      count => 905,
+      err => "Toner Low: C",
+    },
+    {
+      count => 879,
+      err => "Toner Low: M",
+    },
+    {
+      count => 824,
+      err => "Toner Low: Y",
+    },
+    {
+      count => 771,
+      err => "Replace Toner (BK)",
+    },
+    {
+      count => 676,
+      err => "Toner Low: BK",
+    },
+  ],
+  info => {
+    Contact => "PackyAnderson\@gmail.com",
+    "IP Address" => "192.168.1.27",
+    Location => "Dining Room",
+    "Main Firmware Version" => "1.28",
+    "Memory Size" => 128,
+    "Model Name" => "Brother HL-3170CDW series",
+    "Node Name" => "Brother-HL-3170CDW-WiFi",
+    "Serial No." => "U63478J7J395722",
+    "Sub1 Firmware Version" => "1.06",
+  },
+  toner => {
+    Black => {
+      "Remaining Life %" => 80,
+      "Replace Count" => 1,
+    },
+    Cyan => {
+      "Remaining Life %" => 90,
+      "Replace Count" => 1,
+    },
+    Magenta => {
+      "Remaining Life %" => 90,
+      "Replace Count" => 1,
+    },
+    "Waste Box" => {
+      "Replace Count" => 0,
+    },
+    Yellow => {
+      "Remaining Life %" => 90,
+      "Replace Count" => 1,
+    },
+  },
+  units => {
+    Belt => {
+      "Remaining Life" => 47959,
+      "Remaining Life %" => "96.00",
+      "Replace Count" => 0,
+    },
+    Black => {
+      "Remaining Life" => 13686,
+      "Remaining Life %" => "92.00",
+      "Replace Count" => 0,
+    },
+    Cyan => {
+      "Remaining Life" => 13686,
+      "Remaining Life %" => "92.00",
+      "Replace Count" => 0,
+    },
+    Fuser => {
+      "Remaining Life" => 48686,
+      "Remaining Life %" => "98.00",
+      "Replace Count" => 0,
+    },
+    Magenta => {
+      "Remaining Life" => 13686,
+      "Remaining Life %" => "92.00",
+      "Replace Count" => 0,
+    },
+    "Paper Feeding Kit 1" => {
+      "Remaining Life" => 48825,
+      "Remaining Life %" => "98.00",
+      "Replace Count" => 0,
+    },
+    Yellow => {
+      "Remaining Life" => 13686,
+      "Remaining Life %" => "92.00",
+      "Replace Count" => 0,
+    },
+  },
+}
+# /usr/local/etc/zabbix/scripts/HL-3170CDW.pl /var/db/zabbix/printers/HL-3170CDW.dat "get[toner][Cyan][Remaining Life %]"
+90
+# /usr/local/etc/zabbix/scripts/HL-3170CDW.pl /var/db/zabbix/printers/HL-3170CDW.dat "get[toner][Magenta][Remaining Life %]"
+90
+# /usr/local/etc/zabbix/scripts/HL-3170CDW.pl /var/db/zabbix/printers/HL-3170CDW.dat "get[toner][Yellow][Remaining Life %]"
+90
+# /usr/local/etc/zabbix/scripts/HL-3170CDW.pl /var/db/zabbix/printers/HL-3170CDW.dat "get[toner][Black][Remaining Life %]"
+80
